@@ -6,45 +6,46 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.media.Image;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-import org.joda.time.DateTime;
-
-import java.sql.Date;
 
 public class MainActivity extends AppCompatActivity{
+//    This is the main activity the app will land on when it is opened
+//    It displays the list of transactions that have happended.
     RecyclerView recyclerView;
+    public static final String REQUEST_UPDATE_TRANSACTION = "update_transaction";
+    public static final String REQUEST_NEW_TRANSACTION = "add_new_transactions";
+    public final static String REQUEST = "request";
+    public final static String MPESA = "Mpesa";
+    public final static String CASH = "Cash";
     int selected_id;
     Bundle update_info;
     Bundle account_last;
     MyDatabaseHelper dbHelper = new MyDatabaseHelper(this);
     SQLiteDatabase db;
     TransactionAdapter adapter;
+    public final static String PERSMISSION = "android.permission.RECEIVE_SMS";
+    public final static String PERSON_POSITION = "person_position";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String [] wer = new String[]{"android.permission.RECEIVE_SMS"};
+        String [] wer = new String[]{PERSMISSION};
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECEIVE_SMS) == -1) {
             requestPermissions(wer, 20);
         }
@@ -56,30 +57,21 @@ public class MainActivity extends AppCompatActivity{
         reload_list(getTransactionDataFromDatabase(), this, recyclerView);
         totals_calculator();
         ImageButton totals = findViewById(R.id.totals);
-        totals.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent totals_page = new Intent(MainActivity.this, Totals.class);
-                startActivity(totals_page);
-            }
+        totals.setOnClickListener(view -> {
+            Intent totals_page = new Intent(MainActivity.this, Totals.class);
+            startActivity(totals_page);
         });
-        ImageButton peoplebutton = (ImageButton) findViewById(R.id.people_main);
-        peoplebutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent people_intent = new Intent(MainActivity.this, People.class);
-                startActivity(people_intent);
-            }
+        ImageButton people_button = (ImageButton) findViewById(R.id.people_main);
+        people_button.setOnClickListener(view -> {
+            Intent people_intent = new Intent(MainActivity.this, People.class);
+            startActivity(people_intent);
         });
         FloatingActionButton add_tx = (FloatingActionButton) findViewById(R.id.addtx);
-        add_tx.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent addtx = new Intent(MainActivity.this, UpdateTx.class);
-                account_last.putString("request", "addnew");
-                addtx.putExtras(account_last);
-                startActivity(addtx);
-            }
+        add_tx.setOnClickListener(view -> {
+            Intent add_transaction = new Intent(MainActivity.this, UpdateTx.class);
+            account_last.putString(add_account.REQUEST, REQUEST_NEW_TRANSACTION);
+            add_transaction.putExtras(account_last);
+            startActivity(add_transaction);
         });
     }
     @Override
@@ -88,17 +80,18 @@ public class MainActivity extends AppCompatActivity{
         reload_list(getTransactionDataFromDatabase(), this, recyclerView);
         EventBus.getDefault().register(this);
     }
+    @SuppressLint("Range")
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         if (v.getId() == recyclerView.getId()) {
             MenuInflater inflater = getMenuInflater();
             inflater.inflate(R.menu.context_menu, menu);
-            Cursor pple = getPeople();
-            if(pple != null){
-                while(pple.moveToNext()){
-                    if (pple.getInt(pple.getColumnIndex("id")) == update_info.getInt("person_id")){
-                        update_info.putInt("personposition", pple.getPosition());
+            Cursor people_cursor = getPeople();
+            if(people_cursor != null){
+                while(people_cursor.moveToNext()){
+                    if (people_cursor.getInt(people_cursor.getColumnIndex(MyDatabaseHelper.PEOPLES_ID)) == update_info.getInt(MyDatabaseHelper.TRANSACTIONS_PERSON)){
+                        update_info.putInt(PERSON_POSITION, people_cursor.getPosition());
                     }
                 }
             }
@@ -107,16 +100,15 @@ public class MainActivity extends AppCompatActivity{
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        //AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        //int selectedItemPosition = info.position;
+        //fires up a menu when a transaction is long pressed.
 
         if (item.getItemId() == R.id.action_edit){
                 // Handle edit action
                 // Example: Start an edit activity or show a dialog
-            Intent intent = new Intent(this, UpdateTx.class);
-            update_info.putString("request", "update");
-            intent.putExtras(update_info);
-            startActivity(intent);
+            Intent update_transaction_activity = new Intent(this, UpdateTx.class);
+            update_info.putString(REQUEST, REQUEST_UPDATE_TRANSACTION);
+            update_transaction_activity.putExtras(update_info);
+            startActivity(update_transaction_activity);
             return true;
         }
             if (item.getItemId() == R.id.action_delete) {
@@ -128,29 +120,31 @@ public class MainActivity extends AppCompatActivity{
             }
         if (item.getItemId() == R.id.action_transactional) {
             ContentValues transactional_tx = new ContentValues();
+            String INSERT_ERROR = "Error inserting transaction";
+            String NOT_MPESA = "Error not Mpesa transaction";
             // Handle delete action
             // Example: Remove the item from your data source and update the RecyclerView
-            if (update_info.getString("nature").matches("Mpesa")){
-                transactional_tx.put("person", update_info.getInt("person_id"));
-                transactional_tx.put("description", update_info.getString("description") + " -Transactional");
-                transactional_tx.put("date", update_info.getString("date"));
+            if (update_info.getString(MyDatabaseHelper.TRANSACTIONS_NATURE).matches(MPESA)){
+                transactional_tx.put(MyDatabaseHelper.TRANSACTIONS_PERSON, update_info.getInt("person_id"));
+                transactional_tx.put(MyDatabaseHelper.TRANSACTIONS_DESCRIPTION, update_info.getString("description") + " -Transactional");
+                transactional_tx.put(MyDatabaseHelper.TRANSACTIONS_DATE, update_info.getString("date"));
                 if (update_info.getString("type").matches("Income")){
-                    transactional_tx.put("type", "Debt");
-                    transactional_tx.put("amount", update_info.getInt("amount_int") * -1);
+                    transactional_tx.put(MyDatabaseHelper.TRANSACTIONS_TYPE, "Debt");
+                    transactional_tx.put(MyDatabaseHelper.TRANSACTIONS_AMOUNT, update_info.getInt("amount_int") * -1);
                 }else{
-                    transactional_tx.put("type", "Income");
-                    transactional_tx.put("amount", update_info.getInt("amount_int") * -1);
+                    transactional_tx.put(MyDatabaseHelper.TRANSACTIONS_TYPE, "Income");
+                    transactional_tx.put(MyDatabaseHelper.TRANSACTIONS_AMOUNT, update_info.getInt("amount_int") * -1);
                 }
-                transactional_tx.put("nature", "Cash");
-                transactional_tx.put("account", update_info.getInt("acc_id"));
+                transactional_tx.put(MyDatabaseHelper.TRANSACTIONS_NATURE, "Cash");
+                transactional_tx.put(MyDatabaseHelper.TRANSACTIONS_ACCOUNT, update_info.getInt("acc_id"));
                 try {
-                    db.insert("transactions", "person", transactional_tx);
+                    db.insert(MyDatabaseHelper.TRANSACTIONS_TABLE, MyDatabaseHelper.TRANSACTIONS_PERSON, transactional_tx);
                     reload_list(getTransactionDataFromDatabase(), this, recyclerView);
                 }catch (Exception e){
-                    Toast.makeText(this, "Error", Toast.LENGTH_SHORT);
+                    Toast.makeText(this, INSERT_ERROR, Toast.LENGTH_LONG);
                 }
             }else{
-                Toast.makeText(this, "Error not Mpesa tx", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, NOT_MPESA, Toast.LENGTH_LONG).show();
             }
 
             return true;
@@ -166,6 +160,7 @@ public class MainActivity extends AppCompatActivity{
     @Subscribe
     public void onDatabaseUpdateEvent(EventHandler event) {
         // Update your UI or perform any other actions based on the event data
+        // Update the UI with the new data or message
         String message = event.getMessage();
         if (message.matches("new tx")){
             reload_list(getTransactionDataFromDatabase(), this, recyclerView);
@@ -173,21 +168,24 @@ public class MainActivity extends AppCompatActivity{
         if (message.matches("success")){
             reload_list(getTransactionDataFromDatabase(), this, recyclerView);
         }
-        // Update the UI with the new data or message
+
     }
     @Subscribe
     public void onListItemselected(IdHandler event) {
         // Update your UI or perform any other actions based on the event data
-        selected_id = event.getMessage();
         // Update the UI with the new data or message
+        selected_id = event.getMessage();
     }
     @Subscribe
     public void onListItemUpdate(Update_infoHandler event) {
         // Update your UI or perform any other actions based on the event data
+        // Update the UI with the new data or message
         update_info = event.getUpdateinfo();
-                // Update the UI with the new data or message
     }
+    @SuppressLint("Range")
     private Cursor getTransactionDataFromDatabase() {
+//        Gets the cursor for the transactions in the table.
+        final String ERROR_ACCOUNTS = "Accounts Error";
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor accounts = getLastAccount();
         try {
@@ -201,26 +199,32 @@ public class MainActivity extends AppCompatActivity{
                 account_last.putInt("acc_id", accounts.getInt(accounts.getColumnIndex("id")));
             }
         }catch (Exception e){
-            Toast.makeText(this, "Accounts Error", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, ERROR_ACCOUNTS, Toast.LENGTH_LONG).show();
         }
         Cursor tx = db.rawQuery("SELECT transactions.id AS _id, people.fullname, person, transactions.description, transactions.date, transactions.type, transactions.nature, transactions.amount, transactions.account FROM transactions INNER JOIN people WHERE transactions.person=people.id ORDER BY date DESC", null);
 //        totals_calculator(accounts);
         return tx;
     }
     private Cursor getLastAccount(){
-        Cursor latest_account = db.rawQuery("SELECT * FROM accounts ORDER BY id DESC LIMIT 1", null);
+//        returns a cursor with one object which is the last entry into the accounts table
+        Cursor latest_account = db.rawQuery("SELECT * FROM "
+                + MyDatabaseHelper.ACCOUNTS_TABLE +
+                " ORDER BY id DESC LIMIT 1", null);
         return latest_account;
     }
     private Cursor getPeople(){
+//        Returns a cursor to all the records in the people table
+        final String PEOPLE_ERROR = "Could not retrieve people";
       try {
-          Cursor people = db.query("people", null, null, null, null, null,null);
+          Cursor people = db.query(MyDatabaseHelper.PEOPLES_TABLE, null, null, null, null, null,null);
           return people;
       }catch (Exception e){
-          Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
+          Toast.makeText(this, PEOPLE_ERROR, Toast.LENGTH_SHORT).show();
           return null;
       }
     }
     public void reload_list(Cursor txs, Context context, RecyclerView recyclerView){
+//        Refreshes the recyclerview by adding a new cursor
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         // Initialize and set the adapter
         adapter = new TransactionAdapter(getTransactionDataFromDatabase(), context); // Implement this function
@@ -228,24 +232,31 @@ public class MainActivity extends AppCompatActivity{
         recyclerView.getAdapter().notifyDataSetChanged();
     }
     public void delete_tx(int id){
+//        Deletes a transaction with the same id as the one provided.
         MyDatabaseHelper dbHelper = new MyDatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         String[] args = new String[]{String.valueOf(id)};
-        db.delete("transactions", "id = ?", args);
+        db.delete(MyDatabaseHelper.TRANSACTIONS_TABLE, MyDatabaseHelper.TRANSACTIONS_ID + " = ?", args);
     }
     public void totals_calculator(){
-        Cursor accounts = db.rawQuery("SELECT * FROM accounts ORDER BY id DESC LIMIT 1", null);
+//        Calculates the total amount of transactions with nature as mpesa as well the totals for those with cash.
+        Cursor accounts = db.rawQuery("SELECT * FROM " + MyDatabaseHelper.ACCOUNTS_TABLE +
+                " ORDER BY id DESC LIMIT 1", null);
         TextView cash = (TextView) findViewById(R.id.cashvalue);
         TextView mpesa = (TextView) findViewById(R.id.mpesavalue);
-        Cursor mpesa_txs = db.rawQuery("SELECT SUM(amount) AS sum FROM transactions WHERE nature=\"'Mpesa'\"", null);
-        Cursor cash_txs = db.rawQuery("SELECT SUM(amount) AS sum FROM transactions WHERE nature=\"'Cash'\"", null);
+        Cursor mpesa_txs = db.rawQuery("SELECT SUM(amount) AS sum FROM " +
+                MyDatabaseHelper.TRANSACTIONS_TABLE +
+                " WHERE nature=\"'Mpesa'\"", null);
+        Cursor cash_txs = db.rawQuery("SELECT SUM(amount) AS sum FROM " +
+                MyDatabaseHelper.TRANSACTIONS_TABLE +
+                " WHERE nature=\"'Cash'\"", null);
         if (mpesa_txs.moveToPosition(1)) {
-            int total_mpesa = accounts.getInt(accounts.getColumnIndex("mpesa"));
+            @SuppressLint("Range") int total_mpesa = accounts.getInt(accounts.getColumnIndex(MyDatabaseHelper.ACCOUNTS_MPESA));
             total_mpesa += mpesa_txs.getInt(0);
             mpesa.setText(total_mpesa);
         }
         if (cash_txs.moveToPosition(1)) {
-            int total_cash = accounts.getInt(accounts.getColumnIndex("cash"));
+            @SuppressLint("Range") int total_cash = accounts.getInt(accounts.getColumnIndex(MyDatabaseHelper.ACCOUNTS_CASH));
             total_cash += cash_txs.getInt(0);
             cash.setText(total_cash);
         }
