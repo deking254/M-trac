@@ -18,10 +18,10 @@
             android:name=".Totals"
             android:exported="false" />
         <activity
-            android:name=".addaccount"
+            android:name=".add_account"
             android:exported="false" />
         <activity
-            android:name=".addperson"
+            android:name=".add_person"
             android:exported="false" />
         <activity
             android:name=".People"

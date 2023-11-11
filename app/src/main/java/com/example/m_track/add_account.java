@@ -46,11 +46,11 @@ SQLiteDatabase db;
                     finish();
                     if (people != null) {
                         if (people.getCount() <= 0) {
-                            Intent person_add = new Intent(add_account.this, addperson.class);
+                            Intent person_add = new Intent(add_account.this, add_person.class);
                             startActivity(person_add);
                         }
                     }else {
-                        Intent person_add = new Intent(add_account.this, addperson.class);
+                        Intent person_add = new Intent(add_account.this, add_person.class);
                         startActivity(person_add);
                     }
                     }catch (Exception e){

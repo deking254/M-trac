@@ -1,19 +1,14 @@
 package com.example.m_track;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -40,7 +35,7 @@ public class People extends AppCompatActivity {
         add_tx.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent addtx = new Intent(People.this, addperson.class);
+                Intent addtx = new Intent(People.this, add_person.class);
                 startActivity(addtx);
             }
         });
@@ -68,7 +63,7 @@ public class People extends AppCompatActivity {
         if (item.getItemId() == R.id.action_editperson){
             // Handle edit action
             // Example: Start an edit activity or show a dialog
-            Intent intent = new Intent(this, addperson.class);
+            Intent intent = new Intent(this, add_person.class);
             update_info.putString("request", "update");
             intent.putExtras(update_info);
             startActivity(intent);
