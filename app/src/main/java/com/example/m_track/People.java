@@ -49,7 +49,7 @@ public class People extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         reload_list(getPeopleDataFromDatabase(), this, recyclerView);
-        //EventBus.getDefault().register(this);
+        EventBus.getDefault().register(this);
     }
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -76,8 +76,8 @@ public class People extends AppCompatActivity {
         if (item.getItemId() == R.id.action_deleteperson) {
             // Handle delete action
             // Example: Remove the item from your data source and update the RecyclerView
-//            delete_tx(selected_id);
-//            reload_list(getPeopleDataFromDatabase(), this, recyclerView);
+            delete_tx(update_info.getInt("person_id"));
+            reload_list(getPeopleDataFromDatabase(), this, recyclerView);
             return true;
         }
         if (item.getItemId() == R.id.action_transactional) {
@@ -90,7 +90,7 @@ public class People extends AppCompatActivity {
     }
     @Override
     protected void onStop() {
-//        EventBus.getDefault().unregister(this);
+        EventBus.getDefault().unregister(this);
         super.onStop();
     }
     @Subscribe
@@ -112,7 +112,7 @@ public class People extends AppCompatActivity {
         // Update the UI with the new data or message
     }
     @Subscribe
-    public void onListItemUpdate(Update_infoHandler event) {
+    public void onListItemUpdate(Update_personinfoHandler event) {
         // Update your UI or perform any other actions based on the event data
         update_info = event.getUpdateinfo();
         // Update the UI with the new data or message
@@ -135,7 +135,7 @@ public class People extends AppCompatActivity {
     public void delete_tx(int id){
         MyDatabaseHelper dbHelper = new MyDatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        String[] args = new String[]{String.valueOf(selected_id)};
+        String[] args = new String[]{String.valueOf(update_info.getInt("person_id"))};
         db.delete("people", "id = ?", args);
     }
 }
