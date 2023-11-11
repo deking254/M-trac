@@ -22,6 +22,8 @@ import org.greenrobot.eventbus.Subscribe;
 public class People extends AppCompatActivity {
     RecyclerView recyclerView;
     int selected_id;
+    public static final String REQUEST_UPDATE_PERSON = "update_person";
+    public static final String REQUEST_NEW_PERSON = "add_new_person";
     Bundle update_info;
     PeopleAdapter adapter;
     @Override

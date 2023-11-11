@@ -18,6 +18,7 @@ ContentValues starting_amounts;
 String MPESA = "mpesa";
 String CASH = "cash";
 String ERROR_ACCOUNTS = "The account could not be created";
+public static final String REQUEST = "update";
 String ERROR_GETTING_PEOPLE = "The people could not be loaded, Please Ensure that you have added a person";
 
 MyDatabaseHelper dbHelper;
