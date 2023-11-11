@@ -57,15 +57,16 @@ public class PeopleAdapter extends RecyclerView.Adapter<PeopleAdapter.PeopleView
             @Override
             public boolean onLongClick(View view) {
                 Bundle update_info = new Bundle();
+                Log.i("were", String.valueOf(id));
                 Update_personinfoHandler updates;
                 if (cursor.getInt(cursor.getColumnIndex("id")) != -1) {
-                    update_info.putInt("person_id", cursor.getInt(cursor.getColumnIndex("id")));
+                    update_info.putInt("person_id", id);
                 }
                 else{
                     return false;
                 }
                 if (cursor.getInt(cursor.getColumnIndex("fullname")) != -1) {
-                    update_info.putInt("fullname", cursor.getInt(cursor.getColumnIndex("fullname")));
+                    update_info.putString("fullname", fullname);
                 } else{
                     return false;
                 }

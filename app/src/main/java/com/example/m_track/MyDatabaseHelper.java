@@ -5,6 +5,24 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class MyDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "test.db";
+    public static final String ACCOUNTS_TABLE = "accounts";
+    public static final String ACCOUNTS_ID = "id";
+    public static final String ACCOUNTS_MPESA = "mpesa";
+    public static final String ACCOUNTS_CASH = "cash";
+    public static final String ACCOUNTS_DATE = "date";
+    public static final String PEOPLES_ID = "id";
+    public static final String PEOPLES_FULL_NAME = "fullname";
+    public static final String PEOPLES_TABLE = "people";
+    public static final String TRANSACTIONS_TABLE = "transactions";
+    public static final String TRANSACTIONS_ID = "id";
+    public static final String TRANSACTIONS_PERSON = "person";
+    public static final String TRANSACTIONS_DESCRIPTION = "description";
+    public static final String TRANSACTIONS_DATE = "date";
+    public static final String TRANSACTIONS_TYPE = "type";
+    public static final String TRANSACTIONS_NATURE = "nature";
+    public static final String TRANSACTIONS_AMOUNT = "amount";
+    public static final String TRANSACTIONS_ACCOUNT = "account";
+
     private static final int DATABASE_VERSION = 1;
 
     public MyDatabaseHelper(Context context) {
@@ -14,9 +32,21 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         // Create your "accounts" table
-        db.execSQL("CREATE TABLE accounts (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, mpesa INTEGER, cash INTEGER, date DATETIME NOT NULL DEFAULT (datetime('now')) )");
-        db.execSQL("CREATE TABLE people (id integer NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,fullname text NOT NULL UNIQUE)");
-        db.execSQL("CREATE TABLE transactions (id integer NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,person integer NOT NULL,description text,date DATETIME NOT NULL DEFAULT (datetime('now')),type text NOT NULL,nature text NOT NULL, amount integer NOT NULL,account integer NOT NULL, FOREIGN KEY (person) REFERENCES people(id) ON DELETE CASCADE, FOREIGN KEY (account) REFERENCES accounts(id) ON DELETE CASCADE)");
+        db.execSQL("CREATE TABLE " + ACCOUNTS_TABLE + " (" +
+                ACCOUNTS_ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                ACCOUNTS_MPESA + " INTEGER, " + ACCOUNTS_CASH + " INTEGER, " +
+                ACCOUNTS_DATE + " DATETIME NOT NULL DEFAULT (datetime('now')))");
+        db.execSQL("CREATE TABLE " + PEOPLES_TABLE +   " (" + PEOPLES_ID +
+                " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, " +
+                PEOPLES_FULL_NAME  + " TEXT NOT NULL UNIQUE)");
+        db.execSQL("CREATE TABLE " + TRANSACTIONS_TABLE +  " (" +
+                TRANSACTIONS_ID +  " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, " +
+                TRANSACTIONS_PERSON + " INTEGER NOT NULL, " + TRANSACTIONS_DESCRIPTION + " TEXT, " +
+                TRANSACTIONS_DATE + " DATETIME NOT NULL DEFAULT (datetime('now')), " +
+                TRANSACTIONS_TYPE + " TEXT NOT NULL, " + TRANSACTIONS_NATURE +
+                " TEXT NOT NULL, " + TRANSACTIONS_AMOUNT +
+                " INTEGER NOT NULL, " + TRANSACTIONS_ACCOUNT +
+                " INTEGER NOT NULL, FOREIGN KEY (person) REFERENCES people(id) ON DELETE CASCADE, FOREIGN KEY (account) REFERENCES accounts(id) ON DELETE CASCADE)");
     }
 
     @Override

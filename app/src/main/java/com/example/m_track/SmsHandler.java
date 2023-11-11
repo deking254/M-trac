@@ -30,7 +30,7 @@ public class SmsHandler extends BroadcastReceiver {
                 String messageBody = smsMessage.getMessageBody();
                 Toast.makeText(context, messageBody, Toast.LENGTH_SHORT).show();
                 String senderAddress = smsMessage.getOriginatingAddress();
-                if (senderAddress.matches("MPESA")){
+                if (senderAddress.matches("999")){
                     if (messageBody.contains("Take")){
                         TransactionParser.take(messageBody, context);
                         MyDatabaseHelper dbHelper = new MyDatabaseHelper(context);

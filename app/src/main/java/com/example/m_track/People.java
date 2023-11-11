@@ -1,19 +1,14 @@
 package com.example.m_track;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -40,7 +35,7 @@ public class People extends AppCompatActivity {
         add_tx.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent addtx = new Intent(People.this, addperson.class);
+                Intent addtx = new Intent(People.this, add_person.class);
                 startActivity(addtx);
             }
         });
@@ -49,7 +44,7 @@ public class People extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         reload_list(getPeopleDataFromDatabase(), this, recyclerView);
-        //EventBus.getDefault().register(this);
+        EventBus.getDefault().register(this);
     }
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
@@ -68,7 +63,7 @@ public class People extends AppCompatActivity {
         if (item.getItemId() == R.id.action_editperson){
             // Handle edit action
             // Example: Start an edit activity or show a dialog
-            Intent intent = new Intent(this, addperson.class);
+            Intent intent = new Intent(this, add_person.class);
             update_info.putString("request", "update");
             intent.putExtras(update_info);
             startActivity(intent);
@@ -76,8 +71,8 @@ public class People extends AppCompatActivity {
         if (item.getItemId() == R.id.action_deleteperson) {
             // Handle delete action
             // Example: Remove the item from your data source and update the RecyclerView
-//            delete_tx(selected_id);
-//            reload_list(getPeopleDataFromDatabase(), this, recyclerView);
+            delete_tx(update_info.getInt("person_id"));
+            reload_list(getPeopleDataFromDatabase(), this, recyclerView);
             return true;
         }
         if (item.getItemId() == R.id.action_transactional) {
@@ -90,7 +85,7 @@ public class People extends AppCompatActivity {
     }
     @Override
     protected void onStop() {
-//        EventBus.getDefault().unregister(this);
+        EventBus.getDefault().unregister(this);
         super.onStop();
     }
     @Subscribe
@@ -112,7 +107,7 @@ public class People extends AppCompatActivity {
         // Update the UI with the new data or message
     }
     @Subscribe
-    public void onListItemUpdate(Update_infoHandler event) {
+    public void onListItemUpdate(Update_personinfoHandler event) {
         // Update your UI or perform any other actions based on the event data
         update_info = event.getUpdateinfo();
         // Update the UI with the new data or message
@@ -135,7 +130,7 @@ public class People extends AppCompatActivity {
     public void delete_tx(int id){
         MyDatabaseHelper dbHelper = new MyDatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        String[] args = new String[]{String.valueOf(selected_id)};
+        String[] args = new String[]{String.valueOf(update_info.getInt("person_id"))};
         db.delete("people", "id = ?", args);
     }
 }

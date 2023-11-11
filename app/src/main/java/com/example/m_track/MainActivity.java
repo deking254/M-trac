@@ -190,19 +190,18 @@ public class MainActivity extends AppCompatActivity{
     private Cursor getTransactionDataFromDatabase() {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         Cursor accounts = getLastAccount();
-        Cursor people = getPeople();
-        if (accounts.getCount() <= 0) {
-            Intent account_add = new Intent(this, addaccount.class);
-            startActivity(account_add);
-        } else {
-            if (!accounts.moveToPosition(accounts.getCount() - 1)) {
-                return null;
+        try {
+            if (accounts.getCount() <= 0) {
+                Intent account_add = new Intent(this, add_account.class);
+                startActivity(account_add);
+            } else {
+                if (!accounts.moveToPosition(accounts.getCount() - 1)) {
+                    return null;
+                }
+                account_last.putInt("acc_id", accounts.getInt(accounts.getColumnIndex("id")));
             }
-            account_last.putInt("acc_id", accounts.getInt(accounts.getColumnIndex("id")));
-        }
-        if (people.getCount() <= 0) {
-            Intent personadd = new Intent(this, addperson.class);
-            startActivity(personadd);
+        }catch (Exception e){
+            Toast.makeText(this, "Accounts Error", Toast.LENGTH_SHORT).show();
         }
         Cursor tx = db.rawQuery("SELECT transactions.id AS _id, people.fullname, person, transactions.description, transactions.date, transactions.type, transactions.nature, transactions.amount, transactions.account FROM transactions INNER JOIN people WHERE transactions.person=people.id ORDER BY date DESC", null);
 //        totals_calculator(accounts);
