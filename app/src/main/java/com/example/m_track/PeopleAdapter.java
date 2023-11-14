@@ -16,6 +16,9 @@ import org.greenrobot.eventbus.EventBus;
 
 public class PeopleAdapter extends RecyclerView.Adapter<PeopleAdapter.PeopleViewHolder> {
     private Cursor cursor;
+    public static final  String PERSON_ID = "person_id";
+    public static final  String NET_TOTAL = "net";
+
     IdHandler id;
     private Context context;
 
@@ -47,26 +50,26 @@ public class PeopleAdapter extends RecyclerView.Adapter<PeopleAdapter.PeopleView
 
         // Replace these with the actual column indices from your database
 
-        @SuppressLint("Range") String fullname = cursor.getString(cursor.getColumnIndex("fullname"));
-        @SuppressLint("Range") String net = cursor.getString(cursor.getColumnIndex("net"));
-        @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("id"));
+        @SuppressLint("Range") String fullname = cursor.getString(cursor.getColumnIndex(MyDatabaseHelper.PEOPLES_FULL_NAME));
+        @SuppressLint("Range") String net = cursor.getString(cursor.getColumnIndex(NET_TOTAL));
+        @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex(MyDatabaseHelper.PEOPLES_ID));
         holder.fullname.setText(fullname);
         holder.net.setText(net);
         holder.id = id;
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @SuppressLint("Range")
             @Override
             public boolean onLongClick(View view) {
                 Bundle update_info = new Bundle();
-                Log.i("were", String.valueOf(id));
                 Update_personinfoHandler updates;
-                if (cursor.getInt(cursor.getColumnIndex("id")) != -1) {
-                    update_info.putInt("person_id", id);
+                if (cursor.getInt(cursor.getColumnIndex(MyDatabaseHelper.PEOPLES_ID)) != -1) {
+                    update_info.putInt(PERSON_ID, id);
                 }
                 else{
                     return false;
                 }
-                if (cursor.getInt(cursor.getColumnIndex("fullname")) != -1) {
-                    update_info.putString("fullname", fullname);
+                if (cursor.getInt(cursor.getColumnIndex(MyDatabaseHelper.PEOPLES_FULL_NAME)) != -1) {
+                    update_info.putString(MyDatabaseHelper.PEOPLES_FULL_NAME, fullname);
                 } else{
                     return false;
                 }

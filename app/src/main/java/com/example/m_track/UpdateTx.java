@@ -22,6 +22,10 @@ public class UpdateTx extends AppCompatActivity {
     MyDatabaseHelper dbHelper;
     SQLiteDatabase db;
     Cursor acc;
+    public static final String RESPONSE_SUCCESS = "success";
+    public static final String RESPONSE_FAIL = "fail";
+    public static final String ERROR_UPDATING_TRANSACTION = "Could not update the transaction";
+    public static final String RECYCLER_VIEW_ID = "_id";
     int id;
     public Bundle bundleinfo;
     @Override
@@ -41,17 +45,16 @@ public class UpdateTx extends AppCompatActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                EventHandler inserted = new EventHandler("success");
+                EventHandler inserted = new EventHandler(RESPONSE_SUCCESS);
                 String[] wherearg;
                 if (bundleinfo != null) {
-                    if (bundleinfo.getString("request").matches("update")) {
-                        int tx_id = bundleinfo.getInt("tx_id");
-                        wherearg = new String[]{String.valueOf(tx_id)};
+                    if (bundleinfo.getString(People.REQUEST).matches(MainActivity.REQUEST_UPDATE_TRANSACTION)) {
+                        int transaction_id = bundleinfo.getInt(TransactionAdapter.TRANSACTION_ID);
+                        wherearg = new String[]{String.valueOf(transaction_id)};
                         ContentValues newtx = new ContentValues();
                         int amount = Integer.parseInt(amountView.getText().toString());
                         String type = type_text.getSelectedItem().toString();
-                        Log.i("agora", String.valueOf(tx_id));
-                        if (type.matches("Debt")) {
+                        if (type.matches(TransactionParser.OUT_TYPE_VALUE_)) {
                             if (amount > 0) {
                                 amount = amount * -1;
                             }
@@ -60,29 +63,26 @@ public class UpdateTx extends AppCompatActivity {
                                 amount = amount * -1;
                             }
                         }
-                        int person = bundleinfo.getInt("person_id");
-                        Log.i("super2", String.valueOf(person));
+                        int person = bundleinfo.getInt(TransactionAdapter.PERSON_ID);
                         String nature = natureView.getSelectedItem().toString();
                         String description = descriptionView.getText().toString();
-                        newtx.put("amount", amount);
-                        newtx.put("account", bundleinfo.getInt("account"));
-                        newtx.put("nature", nature);
-                        newtx.put("type", type);
-                        newtx.put("description", description);
-                        newtx.put("person", person);
-                        Log.i("tyrone", newtx.getAsString("amount"));
+                        newtx.put(MyDatabaseHelper.TRANSACTIONS_AMOUNT, amount);
+                        newtx.put(MyDatabaseHelper.TRANSACTIONS_ACCOUNT, bundleinfo.getInt(MyDatabaseHelper.TRANSACTIONS_ACCOUNT));
+                        newtx.put(MyDatabaseHelper.TRANSACTIONS_NATURE, nature);
+                        newtx.put(MyDatabaseHelper.TRANSACTIONS_TYPE, type);
+                        newtx.put(MyDatabaseHelper.TRANSACTIONS_DESCRIPTION, description);
+                        newtx.put(MyDatabaseHelper.TRANSACTIONS_PERSON, person);
                         try {
-                            db.update("transactions", newtx, "id = ?", wherearg);
+                            db.update(MyDatabaseHelper.TRANSACTIONS_TABLE, newtx, MyDatabaseHelper.TRANSACTIONS_ID + " = ?", wherearg);
                             finish();
                         } catch (Exception e) {
-                            Toast.makeText(UpdateTx.this, "Error", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(UpdateTx.this, ERROR_UPDATING_TRANSACTION, Toast.LENGTH_SHORT).show();
                         }
-                    } else if (bundleinfo.getString("request").matches("addnew")) {
+                    } else if (bundleinfo.getString(MainActivity.REQUEST).matches(MainActivity.REQUEST_NEW_TRANSACTION)) {
                         ContentValues new_insert = new ContentValues();
                         int amount = Integer.parseInt(amountView.getText().toString());
                         String type = type_text.getSelectedItem().toString();
-                        Log.i("adding new and the selected type is", type);
-                        if (type.matches("Debt")) {
+                        if (type.matches(TransactionParser.OUT_TYPE_VALUE_)) {
                             if (amount > 0) {
                                 amount = amount * -1;
                             }
@@ -92,21 +92,19 @@ public class UpdateTx extends AppCompatActivity {
                             }
                         }
                         int person = people.getSelectedView().getId();
-                        Log.i("chumbo", String.valueOf(id));
                         String nature = natureView.getSelectedItem().toString();
                         String description = descriptionView.getText().toString();
-                        new_insert.put("amount", amount);
-                        new_insert.put("account", bundleinfo.getInt("acc_id"));
-                        new_insert.put("nature", nature);
-                        new_insert.put("type", type);
-                        new_insert.put("description", description);
-                        new_insert.put("person", id);
-                        Log.i("iddde", String.valueOf(id));
+                        new_insert.put(MyDatabaseHelper.TRANSACTIONS_AMOUNT, amount);
+                        new_insert.put(MyDatabaseHelper.TRANSACTIONS_ACCOUNT, bundleinfo.getInt(MainActivity.ACCOUNT_ID_LABEL));
+                        new_insert.put(MyDatabaseHelper.TRANSACTIONS_NATURE, nature);
+                        new_insert.put(MyDatabaseHelper.TRANSACTIONS_TYPE, type);
+                        new_insert.put(MyDatabaseHelper.TRANSACTIONS_DESCRIPTION, description);
+                        new_insert.put(MyDatabaseHelper.TRANSACTIONS_PERSON, id);
                         try {
-                            db.insert("transactions", "amount", new_insert);
+                            db.insert(MyDatabaseHelper.TRANSACTIONS_TABLE, MyDatabaseHelper.TRANSACTIONS_PERSON, new_insert);
                             finish();
                         } catch (Exception e) {
-                            Toast.makeText(UpdateTx.this, "Error", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(UpdateTx.this, TransactionParser.ERROR_TRANSACTION_INSERT, Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
@@ -116,54 +114,54 @@ public class UpdateTx extends AppCompatActivity {
 
     public void update_ui(SQLiteDatabase db) {
         Bundle updateinfo = getIntent().getExtras();
-        String[] projection = {"id AS _id", "fullname"};
-        Cursor people = db.query("people", projection, null, null, null, null, null);
+        String[] projection = {MyDatabaseHelper.PEOPLES_ID + " AS " + RECYCLER_VIEW_ID, MyDatabaseHelper.PEOPLES_FULL_NAME};
+        Cursor people = db.query(MyDatabaseHelper.PEOPLES_TABLE, projection, null, null, null, null, null);
         Spinner people_list = (Spinner) findViewById(R.id.people);
         Spinner nature_list = (Spinner) findViewById(R.id.nature);
         Spinner type_list = (Spinner) findViewById(R.id.type);
         TextView amount = (TextView) findViewById(R.id.textInputEditamont);
         TextView description = (TextView) findViewById(R.id.textInputEditdescription);
         int[] to = new int[]{android.R.id.text1};
-        String[] columns = new String[]{"fullname", "_id"};
+        String[] columns = new String[]{MyDatabaseHelper.PEOPLES_FULL_NAME, RECYCLER_VIEW_ID};
         people_list.setAdapter(new SimpleCursorAdapter(this, android.R.layout.simple_list_item_1, people, columns, to, 0));
-        nature_list.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new String[]{"Cash", "Mpesa"}));
-        type_list.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new String[]{"Debt", "Income", "Transactional"}));
+        nature_list.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new String[]{MainActivity.NATURE_VALUE_CASH, TransactionParser.NATURE_VALUE_MPESA}));
+        type_list.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, new String[]{TransactionParser.OUT_TYPE_VALUE_, TransactionParser.IN_TYPE_VALUE_, "Transactional"}));
         people_list.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 if (people.moveToPosition(i)){
-                    id = people.getInt(people.getColumnIndex("_id"));
-                    bundleinfo.putInt("person_id", id);
+                    id = people.getInt(people.getColumnIndex(RECYCLER_VIEW_ID));
+                    bundleinfo.putInt(TransactionAdapter.PERSON_ID, id);
                 }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) {
                 if(people.moveToFirst()){
-                    id = people.getInt(people.getColumnIndex("_id"));
-                    if (updateinfo.getString("request").matches("update")){
+                    id = people.getInt(people.getColumnIndex(RECYCLER_VIEW_ID));
+                    if (updateinfo.getString(MainActivity.REQUEST).matches(MainActivity.REQUEST_UPDATE_TRANSACTION)){
                         return;
                     }else{
-                        bundleinfo.putInt("person_id", id);
+                        bundleinfo.putInt(TransactionAdapter.PERSON_ID, id);
                     }
                 }
             }
         });
         if (updateinfo != null) {
-            if (updateinfo.getString("request").matches("update")) {
-                if (updateinfo.getString("nature").matches("Cash")) {
+            if (updateinfo.getString(MainActivity.REQUEST).matches(MainActivity.REQUEST_UPDATE_TRANSACTION)) {
+                if (updateinfo.getString(MyDatabaseHelper.TRANSACTIONS_NATURE).matches(MainActivity.NATURE_VALUE_CASH)) {
                     nature_list.setSelection(0);
                 } else {
                     nature_list.setSelection(1);
                 }
-                if (updateinfo.getString("type").matches("Debt")) {
+                if (updateinfo.getString(MyDatabaseHelper.TRANSACTIONS_TYPE).matches(TransactionParser.OUT_TYPE_VALUE_)) {
                     type_list.setSelection(0);
                 } else {
                     type_list.setSelection(1);
                 }
-                people_list.setSelection(updateinfo.getInt("personposition"));
-                amount.setText(updateinfo.getString("amount"));
-                description.setText(updateinfo.getString("description"));
+                people_list.setSelection(updateinfo.getInt(MainActivity.PERSON_POSITION));
+                amount.setText(updateinfo.getString(MyDatabaseHelper.TRANSACTIONS_AMOUNT));
+                description.setText(updateinfo.getString(MyDatabaseHelper.TRANSACTIONS_DESCRIPTION));
             }else{
                 nature_list.setSelection(0);
                 type_list.setSelection(0);
