@@ -7,18 +7,14 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.telephony.SmsMessage;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.greenrobot.eventbus.EventBus;
 
 public class SmsHandler extends BroadcastReceiver {
-    EventHandler new_tx = new EventHandler("new tx");
+    public static final String NEW_TRANSACTION_EVENT = "new transaction";
+    public static final String MPESA_ADDRESS = "MPESA";
+
+    EventHandler new_tx = new EventHandler(NEW_TRANSACTION_EVENT);
 
     public void onReceive(Context context, Intent intent) {
         Bundle bundle = intent.getExtras();
@@ -30,51 +26,51 @@ public class SmsHandler extends BroadcastReceiver {
                 String messageBody = smsMessage.getMessageBody();
                 Toast.makeText(context, messageBody, Toast.LENGTH_SHORT).show();
                 String senderAddress = smsMessage.getOriginatingAddress();
-                if (senderAddress.matches("999")){
-                    if (messageBody.contains("Take")){
+                if (senderAddress.matches(MPESA_ADDRESS)){
+                    if (messageBody.contains(TransactionParser.AGENT_SIM_CASH_FROM_CUSTOMER_KEY_WORDS[1])){
                         TransactionParser.take(messageBody, context);
                         MyDatabaseHelper dbHelper = new MyDatabaseHelper(context);
                         SQLiteDatabase db = dbHelper.getWritableDatabase();
-                        Cursor new_txs = db.query("transactions", null, null, null, null, null, null);
+                        Cursor new_txs = db.query(MyDatabaseHelper.TRANSACTIONS_TABLE, null, null, null, null, null, null);
                         EventBus.getDefault().post(new_tx);
                     }
-                    if (messageBody.contains("Give")){
+                    if (messageBody.contains(TransactionParser.AGENT_SIM_CASH_TO_CUSTOMER_KEY_WORDS[1])){
                         TransactionParser.give(messageBody, context);
                         MyDatabaseHelper dbHelper = new MyDatabaseHelper(context);
                         SQLiteDatabase db = dbHelper.getWritableDatabase();
-                        try (Cursor new_txs = db.query("transactions", null, null, null, null, null, null)) {
+                        try (Cursor new_txs = db.query(MyDatabaseHelper.TRANSACTIONS_TABLE, null, null, null, null, null, null)) {
                             EventBus.getDefault().post(new_tx);
                         }
                     }
-                    if (messageBody.contains("sent to")){
+                    if (messageBody.contains(TransactionParser.PERSONAL_SIM_MPESA_SENT_TO_PERSON_KEY_WORDS[1])){
                         TransactionParser.sent(messageBody, context);
                         MyDatabaseHelper dbHelper = new MyDatabaseHelper(context);
                         SQLiteDatabase db = dbHelper.getWritableDatabase();
-                        try (Cursor new_txs = db.query("transactions", null, null, null, null, null, null)) {
+                        try (Cursor new_txs = db.query(MyDatabaseHelper.TRANSACTIONS_TABLE, null, null, null, null, null, null)) {
                             EventBus.getDefault().post(new_tx);
                         }
                     }
-                    if (messageBody.contains("paid to")){
+                    if (messageBody.contains(TransactionParser.PERSONAL_SIM_MPESA_PAID_TO_TILL_KEY_WORDS[1])){
                         TransactionParser.paid(messageBody, context);
                         MyDatabaseHelper dbHelper = new MyDatabaseHelper(context);
                         SQLiteDatabase db = dbHelper.getWritableDatabase();
-                        try (Cursor new_txs = db.query("transactions", null, null, null, null, null, null)) {
+                        try (Cursor new_txs = db.query(MyDatabaseHelper.TRANSACTIONS_TABLE, null, null, null, null, null, null)) {
                             EventBus.getDefault().post(new_tx);
                         }
                     }
-                    if (messageBody.contains("bought")){
+                    if (messageBody.contains(TransactionParser.PERSONAL_SIM_MPESA_BOUGHT_AIRTIME_FOR_PERSON_KEY_WORDS[1])){
                         TransactionParser.bought(messageBody, context);
                         MyDatabaseHelper dbHelper = new MyDatabaseHelper(context);
                         SQLiteDatabase db = dbHelper.getWritableDatabase();
-                        try (Cursor new_txs = db.query("transactions", null, null, null, null, null, null)) {
+                        try (Cursor new_txs = db.query(MyDatabaseHelper.TRANSACTIONS_TABLE, null, null, null, null, null, null)) {
                             EventBus.getDefault().post(new_tx);
                         }
                     }
-                    if (messageBody.contains("received")){
+                    if (messageBody.contains(TransactionParser.PERSONAL_SIM_MPESA_RECEIVED_FROM_PERSON_KEY_WORDS[1])){
                         TransactionParser.received(messageBody, context);
                         MyDatabaseHelper dbHelper = new MyDatabaseHelper(context);
                         SQLiteDatabase db = dbHelper.getWritableDatabase();
-                        try (Cursor new_txs = db.query("transactions", null, null, null, null, null, null)) {
+                        try (Cursor new_txs = db.query(MyDatabaseHelper.TRANSACTIONS_TABLE, null, null, null, null, null, null)) {
                             EventBus.getDefault().post(new_tx);
                         }
                     }

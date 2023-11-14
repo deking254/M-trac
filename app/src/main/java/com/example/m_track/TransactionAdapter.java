@@ -21,6 +21,9 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     private Cursor cursor;
     IdHandler id;
     private Context context;
+    public static final String TRANSACTION_ID = "transaction_id";
+    public static final String PERSON_ID = "person_id";
+    public static final String AMOUNT_INT = "amount_int";
 
     public TransactionAdapter(Cursor cursor, Context context) {
         this.cursor = cursor;
@@ -49,16 +52,16 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         }
 
         // Replace these with the actual column indices from your database
-        @SuppressLint("Range") String description = cursor.getString(cursor.getColumnIndex("description"));
-        @SuppressLint("Range") String date = cursor.getString(cursor.getColumnIndex("date"));
-        @SuppressLint("Range") Long date_date = cursor.getLong(cursor.getColumnIndex("date"));
-        @SuppressLint("Range") int amount = cursor.getInt(cursor.getColumnIndex("amount"));
-        @SuppressLint("Range") int account = cursor.getInt(cursor.getColumnIndex("account"));
-        @SuppressLint("Range") int person = cursor.getInt(cursor.getColumnIndex("person"));
-        @SuppressLint("Range") String nature = cursor.getString(cursor.getColumnIndex("nature"));
-        @SuppressLint("Range") String type = cursor.getString(cursor.getColumnIndex("type"));
-        @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex("_id"));
-        @SuppressLint("Range") String fullname = cursor.getString(cursor.getColumnIndex("fullname"));
+        @SuppressLint("Range") String description = cursor.getString(cursor.getColumnIndex(MyDatabaseHelper.TRANSACTIONS_DESCRIPTION));
+        @SuppressLint("Range") String date = cursor.getString(cursor.getColumnIndex(MyDatabaseHelper.TRANSACTIONS_DATE));
+//        @SuppressLint("Range") Long date_date = cursor.getLong(cursor.getColumnIndex("date"));
+        @SuppressLint("Range") int amount = cursor.getInt(cursor.getColumnIndex(MyDatabaseHelper.TRANSACTIONS_AMOUNT));
+        @SuppressLint("Range") int account = cursor.getInt(cursor.getColumnIndex(MyDatabaseHelper.TRANSACTIONS_ACCOUNT));
+        @SuppressLint("Range") int person = cursor.getInt(cursor.getColumnIndex(MyDatabaseHelper.TRANSACTIONS_PERSON));
+        @SuppressLint("Range") String nature = cursor.getString(cursor.getColumnIndex(MyDatabaseHelper.TRANSACTIONS_NATURE));
+        @SuppressLint("Range") String type = cursor.getString(cursor.getColumnIndex(MyDatabaseHelper.TRANSACTIONS_TYPE));
+        @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex(UpdateTx.RECYCLER_VIEW_ID));
+        @SuppressLint("Range") String fullname = cursor.getString(cursor.getColumnIndex(MyDatabaseHelper.PEOPLES_FULL_NAME));
         holder.descriptionTextView.setText(description);
         holder.date = date;
         //I used the datetextview as the fullname displayer because I was just too lazy to create or refactor. Deal with it!!!
@@ -76,17 +79,16 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             public boolean onLongClick(View view) {
                 Bundle update_info = new Bundle();
                 Update_infoHandler updates;
-                update_info.putString("description", (String) holder.descriptionTextView.getText());
-                update_info.putString("amount", (String) holder.amountTextView.getText());
-                update_info.putString("type", holder.type);
-                update_info.putString("nature", holder.nature);
-                update_info.putInt("account", holder.account);
-                update_info.putInt("person_id", holder.person);
-                update_info.putInt("tx_id", holder.id);
-                update_info.putString("date", holder.date);
-                update_info.putInt("amount_int", holder.amount);
-                update_info.putLong("date_Long", date_date);
-                update_info.putString("fullname", holder.fullname);
+                update_info.putString(MyDatabaseHelper.TRANSACTIONS_DESCRIPTION, (String) holder.descriptionTextView.getText());
+                update_info.putString(MyDatabaseHelper.TRANSACTIONS_AMOUNT, (String) holder.amountTextView.getText());
+                update_info.putString(MyDatabaseHelper.TRANSACTIONS_TYPE, holder.type);
+                update_info.putString(MyDatabaseHelper.TRANSACTIONS_NATURE, holder.nature);
+                update_info.putInt(MyDatabaseHelper.TRANSACTIONS_ACCOUNT, holder.account);
+                update_info.putInt(PERSON_ID, holder.person);
+                update_info.putInt(TRANSACTION_ID, holder.id);
+                update_info.putString(MyDatabaseHelper.TRANSACTIONS_DATE, holder.date);
+                update_info.putInt(AMOUNT_INT, holder.amount);
+                update_info.putString(MyDatabaseHelper.PEOPLES_FULL_NAME, holder.fullname);
                 updates  = new Update_infoHandler(update_info);
                 EventBus.getDefault().post(updates);
                 return false;
@@ -96,10 +98,11 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
     @Override
     public int getItemCount() {
+//     returns number of records in the cursor
         return cursor.getCount();
     }
-
     public class TransactionViewHolder extends RecyclerView.ViewHolder {
+//        This class returns an object of the elements of one view of a transaction
         public TextView descriptionTextView;
         public TextView dateTextView;
         public TextView natureTextView;
