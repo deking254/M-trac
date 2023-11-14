@@ -4,10 +4,12 @@ M-trac
 ## Introduction
 An android app that calculates expenses and income based on incoming mpesa messages.
 It automatically obtains that amount and type of transactions by checking for certain key words in a message.
-###App link: 
-###Blog:
-###Linkedin:
-
+### Download App:
+Here is the link to the app [Build](https://google.com)
+### Blog:
+[Project blog](https://google.com)
+### Linkedin: 
+[My linkedin](https://www.linkedin.com/in/dennis-kiptoo-07b032104/)
 
 ## Installation
 ### Prerequisites
@@ -95,7 +97,7 @@ Once your contribution has been reviewed and approved, a maintainer will merge y
 
 Thank you for contributing to M-trac! Your efforts help improve the app for everyone. If you have any questions or need assistance, feel free to reach out to the project maintainers or community.
 # Related projects
-Ledger : https://github.com/MarkNjunge/Ledger
+[Ledger](https://github.com/MarkNjunge/Ledger)
 # Licensing
 MIT License
 
