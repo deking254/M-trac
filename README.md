@@ -7,7 +7,7 @@ It automatically obtains that amount and type of transactions by checking for ce
 ### Download App:
 Here is the link to the app [Build](https://google.com)
 ### Blog:
-[Project blog](https://google.com)
+[Project blog](https://medium.com/@dekingsky/m-trac-simplifying-finances-with-m-pesa-message-parsing-567215eb3e6a)
 ### Linkedin: 
 [My linkedin](https://www.linkedin.com/in/dennis-kiptoo-07b032104/)
 
